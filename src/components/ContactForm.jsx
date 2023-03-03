@@ -1,24 +1,47 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { getContacts } from 'Redux/Selectors';
 import { addContact } from 'Redux/contactsSlice';
 import { Form, Label, Input, Button } from './Phonebook.styled';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ContactForm() {
   const dispatch = useDispatch();
+  const contactsList = useSelector(getContacts);
+
+  const twinCheck = (newContactName, contact) => {
+    let isTwin = contactsList.find(prevContact => {
+      if (prevContact.name === newContactName) {
+        toast.warn('This contact already exists', {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        return true;
+      }
+      return false;
+    });
+    if (!isTwin) {
+      dispatch(addContact(contact));
+    }
+    isTwin = false;
+  };
 
   const handleSubmit = e => {
     e.preventDefault();
-
     const form = e.target;
+    const name = form.elements.name.value;
+    const phone = form.elements.number.value;
     const contact = {
-      name: form.elements.name.value,
-      number: form.elements.number.value,
+      name: name,
+      number: phone,
     };
-    dispatch(addContact(contact));
+    twinCheck(name, contact);
+
     form.reset();
   };
 
   return (
     <Form onSubmit={handleSubmit}>
+      <ToastContainer />
       <Label>
         Name
         <Input
